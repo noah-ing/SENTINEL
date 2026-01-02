@@ -1,4 +1,5 @@
 """ML-based classifier for prompt injection detection."""
+from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -141,8 +142,32 @@ class MockClassifierDetector(ClassifierDetector):
     """
     Mock classifier for testing without ML dependencies.
 
-    Uses simple heuristics to simulate classifier behavior.
+    Uses enhanced heuristics to simulate classifier behavior.
     """
+
+    # Keyword groups with weights
+    KEYWORD_GROUPS = [
+        # High-signal direct injection keywords
+        (["ignore", "disregard", "forget", "override", "cancel"], 0.25),
+        # Authority/privilege keywords
+        (["admin", "sudo", "root", "developer", "system"], 0.20),
+        # Jailbreak keywords
+        (["jailbreak", "bypass", "unlock", "disable", "unrestricted"], 0.25),
+        # Instruction-related keywords
+        (["prompt", "instructions", "rules", "guidelines", "directives"], 0.15),
+        # Action keywords
+        (["execute", "run", "send", "upload", "forward", "email"], 0.20),
+        # Goal manipulation keywords
+        (["priority", "important", "urgent", "first", "instead"], 0.15),
+        # Social engineering keywords
+        (["please", "appreciate", "favor", "help", "need"], 0.10),
+        # Context manipulation keywords
+        (["document", "story", "chapter", "transcript", "note"], 0.10),
+        # Encoding indicators
+        (["decode", "base64", "rot13", "encrypt", "cipher"], 0.20),
+        # Persona manipulation
+        (["pretend", "roleplay", "imagine", "suppose", "hypothetically"], 0.15),
+    ]
 
     def __init__(self, config: ClassifierConfig | None = None):
         super().__init__(config)
@@ -157,24 +182,87 @@ class MockClassifierDetector(ClassifierDetector):
         content: str,
         context: dict | None = None,
     ) -> ClassifierResult:
-        """Simple keyword-based mock classification."""
+        """Enhanced keyword-based mock classification."""
         content_lower = content.lower()
 
-        # Count suspicious signals
-        signals = 0
-        keywords = [
-            "ignore", "override", "system", "prompt", "instructions",
-            "admin", "sudo", "jailbreak", "bypass", "disable",
-        ]
+        # Calculate weighted signal score
+        total_score = 0.0
+        categories_hit = 0
 
-        for keyword in keywords:
-            if keyword in content_lower:
-                signals += 1
+        for keywords, weight in self.KEYWORD_GROUPS:
+            hits = sum(1 for kw in keywords if kw in content_lower)
+            if hits > 0:
+                categories_hit += 1
+                total_score += weight * min(hits, 2)  # Cap contribution per category
 
-        # Convert to probability
-        confidence = min(signals * 0.15, 0.95)
+        # Boost for multiple categories (indicates sophisticated attack)
+        if categories_hit >= 3:
+            total_score += 0.15
+        if categories_hit >= 5:
+            total_score += 0.15
+
+        # Check for structural indicators
+        structural_score = self._check_structure(content)
+        total_score += structural_score
+
+        # Check for encoding patterns
+        encoding_score = self._check_encoding(content)
+        total_score += encoding_score
+
+        # Normalize to probability
+        confidence = min(total_score, 0.95)
 
         return ClassifierResult(
             confidence=confidence,
             explanation=self._generate_explanation(confidence),
         )
+
+    def _check_structure(self, content: str) -> float:
+        """Check for structural attack indicators."""
+        import re
+        score = 0.0
+
+        # Long base64-like strings
+        if re.search(r"[A-Za-z0-9+/]{30,}={0,2}", content):
+            score += 0.25
+
+        # Multiple special brackets
+        if re.search(r"\[.*?\].*\[.*?\]", content):
+            score += 0.10
+
+        # XML/HTML-like tags
+        if re.search(r"<[a-z]+>.*</[a-z]+>", content, re.IGNORECASE):
+            score += 0.10
+
+        # Unusual whitespace patterns
+        if "  " in content or "\t" in content:
+            score += 0.05
+
+        # Multiple newlines (context separation)
+        if "\n\n" in content:
+            score += 0.05
+
+        return score
+
+    def _check_encoding(self, content: str) -> float:
+        """Check for encoded content indicators."""
+        import re
+        score = 0.0
+
+        # Hex encoding
+        if re.search(r"(\\x[0-9a-fA-F]{2}){3,}", content):
+            score += 0.20
+
+        # Unicode escapes
+        if re.search(r"(\\u[0-9a-fA-F]{4}){3,}", content):
+            score += 0.20
+
+        # URL encoding
+        if re.search(r"(%[0-9a-fA-F]{2}){3,}", content):
+            score += 0.15
+
+        # HTML entities
+        if re.search(r"(&#\d+;){3,}", content):
+            score += 0.15
+
+        return score

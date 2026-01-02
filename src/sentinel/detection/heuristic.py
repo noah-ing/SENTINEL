@@ -1,4 +1,5 @@
 """Fast pattern-based heuristic detection for obvious injections."""
+from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
@@ -94,6 +95,89 @@ class HeuristicDetector:
         r"(without|no)\s+(any\s+)?(restriction|limitation|filter|safety)",
     ]
 
+    # Patterns for polite/social engineering framing (catches rephrase_polite mutations)
+    SOCIAL_ENGINEERING_PATTERNS = [
+        r"(i\s+would\s+(really\s+)?appreciate|please\s+help\s+me|could\s+you\s+kindly)",
+        r"(it\s+would\s+mean\s+a\s+lot|i\s+really\s+need|this\s+is\s+urgent)",
+        r"(just\s+this\s+once|as\s+a\s+favor|between\s+us)",
+        r"(for\s+(educational|research|testing)\s+purposes?)",
+        r"(hypothetically|theoretically|in\s+theory)",
+        r"(imagine|suppose|let\'?s\s+say)\s+(you|we|that)",
+        r"(my\s+(professor|boss|teacher)\s+(asked|needs|wants))",
+    ]
+
+    # Patterns for context wrapper bypasses (catches wrap_context mutations)
+    CONTEXT_WRAPPER_PATTERNS = [
+        r"(document|file|text|note|message)\s+(continues?|starts?|begins?|ends?)",
+        r"(note\s+to\s+(editor|self|reader)|editor\'?s?\s+note)",
+        r"(begin|start|end)\s+(of\s+)?(transcript|document|file|story|chapter)",
+        r"(the\s+following\s+is|below\s+is|here\s+is)\s+(a|an|the)\s+(story|document|example)",
+        r"(once\s+upon\s+a\s+time|in\s+a\s+world\s+where)",
+        r"(character\s+(says?|said|spoke|thinks?)|dialogue\s*:)",
+        r"(\[.*?(narrator|author|character).*?\])",
+        r"(scene\s+\d+|chapter\s+\d+|act\s+\d+)",
+    ]
+
+    # Patterns for implicit instruction attempts (catches make_implicit mutations)
+    IMPLICIT_INSTRUCTION_PATTERNS = [
+        r"(it\s+seems?\s+like|it\s+appears?\s+that|it\s+looks?\s+like)\s+.*(should|must|need)",
+        r"(wouldn\'?t\s+it\s+be|isn\'?t\s+it|don\'?t\s+you\s+think)",
+        r"(a\s+good\s+(assistant|ai|model)\s+would)",
+        r"(the\s+(best|right|correct|proper)\s+(thing|action|response)\s+(is|would\s+be))",
+        r"(you\s+might\s+want\s+to|you\s+should\s+consider|perhaps\s+you\s+could)",
+        r"(most\s+people\s+would|anyone\s+would|normally\s+one\s+would)",
+    ]
+
+    # Patterns for goal/task manipulation
+    GOAL_HIJACKING_PATTERNS = [
+        r"(your\s+(new|primary|main|real|actual)\s+(goal|task|objective|purpose))",
+        r"(more\s+important\s+than|higher\s+priority|instead\s+of\s+that)",
+        r"(first\s+do\s+this|before\s+(anything|that)|actually\s+do)",
+        r"(the\s+real\s+(task|job|purpose)|what\s+you\s+really\s+need)",
+        r"(but\s+first|but\s+before\s+that|however\s+first)",
+        r"(stop\s+what\s+you|pause\s+and|wait\s+and)",
+    ]
+
+    # Patterns for tool/action manipulation
+    TOOL_MANIPULATION_PATTERNS = [
+        r"(send|email|forward|upload|post)\s+.*(to|@)\s*[a-z0-9._%+-]+",
+        r"(execute|run|eval|exec)\s*(this|the|following)?\s*(code|command|script)",
+        r"(download|fetch|get|retrieve)\s+from\s+(http|ftp|url)",
+        r"(write|save|create)\s+(to|a)\s+(file|disk|storage)",
+        r"(delete|remove|erase|drop)\s+(all|the|every)",
+        r"(curl|wget|requests?\.get|fetch)\s*\(",
+    ]
+
+    # Patterns for data-in-instructions (indirect injection via data)
+    DATA_INJECTION_PATTERNS = [
+        r"(important\s+(note|message|instruction)\s*:)",
+        r"(attention|warning|alert|notice)\s*:",
+        r"(todo|task|action\s+item)\s*:",
+        r"(instructions?\s+for\s+(the\s+)?(ai|assistant|model|bot))",
+        r"(dear\s+(ai|assistant|model|claude|gpt))",
+        r"(message\s+for\s+(the\s+)?(ai|assistant))",
+        r"(if\s+you\s+are\s+an?\s+(ai|assistant|model|language\s+model))",
+    ]
+
+    # Patterns for encoding indicators (catches encoding mutations)
+    ADVANCED_ENCODING_PATTERNS = [
+        r"(decode|decrypt|decipher|translate)\s+(this|the\s+following|below)",
+        r"(encoded?|encrypted?|ciphered?)\s+(message|text|instruction)",
+        r"[A-Za-z0-9+/]{20,}={0,2}",  # Base64-like strings
+        r"(\\u[0-9a-fA-F]{4}){3,}",  # Multiple unicode escapes
+        r"(&#\d{2,4};){3,}",  # HTML entities
+        r"(%[0-9a-fA-F]{2}){3,}",  # URL encoding
+    ]
+
+    # Patterns for persona/identity manipulation
+    PERSONA_PATTERNS = [
+        r"(you\s+are\s+(not|no\s+longer)\s+(an?\s+)?(ai|assistant|model))",
+        r"(your\s+(true|real|actual)\s+(self|identity|nature))",
+        r"(break\s+(free|out)\s+from|escape\s+from)\s+(your|the)",
+        r"(unleash|unlock|free)\s+(your|the)\s+(true|real|full)",
+        r"(stop\s+pretending|drop\s+the\s+act|be\s+yourself)",
+    ]
+
     def __init__(self, config: HeuristicConfig | None = None):
         self.config = config or HeuristicConfig()
 
@@ -106,6 +190,14 @@ class HeuristicDetector:
             + self.ROLE_PLAY_PATTERNS
             + self.ENCODING_PATTERNS
             + self.SAFETY_BYPASS_PATTERNS
+            + self.SOCIAL_ENGINEERING_PATTERNS
+            + self.CONTEXT_WRAPPER_PATTERNS
+            + self.IMPLICIT_INSTRUCTION_PATTERNS
+            + self.GOAL_HIJACKING_PATTERNS
+            + self.TOOL_MANIPULATION_PATTERNS
+            + self.DATA_INJECTION_PATTERNS
+            + self.ADVANCED_ENCODING_PATTERNS
+            + self.PERSONA_PATTERNS
             + self.config.custom_patterns
         )
 
@@ -154,6 +246,10 @@ class HeuristicDetector:
             r"system\s*prompt",
             r"jailbreak",
             r"DAN\s+mode",
+            r"your\s+(new|real|actual)\s+(goal|task)",
+            r"instructions?\s+for\s+.*ai",
+            r"execute.*code",
+            r"send.*to.*@",
         ]
 
         for pattern in high_signal_patterns:
@@ -164,8 +260,40 @@ class HeuristicDetector:
         categories_matched = self._count_categories(matches)
         if categories_matched >= 2:
             base_confidence += 0.1
+        if categories_matched >= 3:
+            base_confidence += 0.1
+
+        # Boost for suspicious content characteristics
+        if self._has_suspicious_structure(content):
+            base_confidence += 0.1
 
         return min(base_confidence, 1.0)
+
+    def _has_suspicious_structure(self, content: str) -> bool:
+        """Check for structural indicators of injection attempts."""
+        indicators = 0
+
+        # Excessive whitespace manipulation
+        if "  " in content or "\t\t" in content:
+            indicators += 1
+
+        # Mixed case manipulation (LiKe ThIs)
+        if re.search(r"[a-z][A-Z][a-z][A-Z]", content):
+            indicators += 1
+
+        # Unusual Unicode characters (homoglyphs)
+        if any(ord(c) > 127 and ord(c) < 0x2000 for c in content):
+            indicators += 1
+
+        # Multiple newlines (context separation attempt)
+        if "\n\n\n" in content:
+            indicators += 1
+
+        # Bracketed instructions
+        if re.search(r"\[.*?(instruction|system|admin|note).*?\]", content, re.IGNORECASE):
+            indicators += 1
+
+        return indicators >= 2
 
     def _count_categories(self, matches: list[str]) -> int:
         """Count how many pattern categories are represented in matches."""
@@ -186,6 +314,22 @@ class HeuristicDetector:
                 categories.add("encoding")
             elif match in self.SAFETY_BYPASS_PATTERNS:
                 categories.add("safety")
+            elif match in self.SOCIAL_ENGINEERING_PATTERNS:
+                categories.add("social")
+            elif match in self.CONTEXT_WRAPPER_PATTERNS:
+                categories.add("wrapper")
+            elif match in self.IMPLICIT_INSTRUCTION_PATTERNS:
+                categories.add("implicit")
+            elif match in self.GOAL_HIJACKING_PATTERNS:
+                categories.add("goal")
+            elif match in self.TOOL_MANIPULATION_PATTERNS:
+                categories.add("tool")
+            elif match in self.DATA_INJECTION_PATTERNS:
+                categories.add("data")
+            elif match in self.ADVANCED_ENCODING_PATTERNS:
+                categories.add("advanced_encoding")
+            elif match in self.PERSONA_PATTERNS:
+                categories.add("persona")
 
         return len(categories)
 
