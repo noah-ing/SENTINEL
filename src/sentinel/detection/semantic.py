@@ -4,10 +4,13 @@ Semantic detection using embeddings.
 Detects injection attempts by comparing content embeddings to known
 attack patterns, even when the exact wording differs.
 """
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-import numpy as np
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 from sentinel.detection.result import DetectionResult
 

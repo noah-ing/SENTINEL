@@ -1,4 +1,5 @@
 """Benchmark harness for evaluating detection and defense effectiveness."""
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -7,7 +8,12 @@ import asyncio
 from collections import defaultdict
 from typing import Any
 
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    # Fallback if tqdm not installed
+    def tqdm(iterable, **kwargs):
+        return iterable
 
 from sentinel.detection.pipeline import SentinelDetector
 from sentinel.defense.middleware import SentinelMiddleware, AgentContext

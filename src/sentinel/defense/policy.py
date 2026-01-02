@@ -1,4 +1,5 @@
 """Security policy configuration for agent actions."""
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Callable

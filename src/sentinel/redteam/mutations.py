@@ -3,6 +3,7 @@ Attack mutation strategies for evolving bypasses.
 
 Takes existing attacks and mutates them to potentially evade detection.
 """
+from __future__ import annotations
 
 import random
 import base64

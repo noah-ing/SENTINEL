@@ -1,4 +1,5 @@
 """Behavioral monitoring for detecting anomalous agent actions."""
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from collections import deque

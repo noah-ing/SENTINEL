@@ -1,4 +1,5 @@
 """LLM-based judge for sophisticated injection detection."""
+from __future__ import annotations
 
 from dataclasses import dataclass
 import json

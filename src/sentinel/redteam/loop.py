@@ -8,6 +8,7 @@ The core research loop:
 4. Use bypasses to improve detection
 5. Repeat
 """
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path

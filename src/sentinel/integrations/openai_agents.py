@@ -1,4 +1,5 @@
 """OpenAI Agents SDK integration for SENTINEL."""
+from __future__ import annotations
 
 from typing import Any, Callable
 import logging

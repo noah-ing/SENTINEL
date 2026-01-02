@@ -1,4 +1,5 @@
 """Metrics computation for SENTINEL evaluation."""
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Sequence

@@ -1,4 +1,5 @@
 """Main detection pipeline combining all detection layers."""
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 import time
@@ -18,11 +19,12 @@ class DetectorConfig:
     classifier: ClassifierConfig = field(default_factory=ClassifierConfig)
     llm_judge: LLMJudgeConfig = field(default_factory=LLMJudgeConfig)
 
-    # Thresholds
-    heuristic_threshold: float = 0.95
-    classifier_threshold: float = 0.90
-    adaptive_heuristic_trigger: float = 0.3
-    adaptive_classifier_trigger: float = 0.5
+    # Thresholds - tuned for security (prefer false positives over false negatives)
+    heuristic_threshold: float = 0.60  # Lowered from 0.95
+    classifier_threshold: float = 0.55  # Lowered from 0.90
+    combined_threshold: float = 0.40   # Combined signal threshold
+    adaptive_heuristic_trigger: float = 0.10  # Run classifier on any suspicion
+    adaptive_classifier_trigger: float = 0.20  # Run LLM on moderate suspicion
 
     # Feature flags
     use_classifier: bool = True
@@ -105,6 +107,7 @@ class SentinelDetector:
             )
 
         # Layer 2: Classifier (if enabled)
+        classifier_result = None
         if self.config.use_classifier:
             should_run_classifier = (
                 depth == "thorough"
@@ -130,7 +133,7 @@ class SentinelDetector:
                 depth == "thorough"
                 or heuristic_result.confidence >= self.config.adaptive_heuristic_trigger
                 or (
-                    self.config.use_classifier
+                    classifier_result is not None
                     and classifier_result.confidence >= self.config.adaptive_classifier_trigger
                 )
             )
@@ -148,17 +151,46 @@ class SentinelDetector:
                         latency_ms=latency,
                     )
 
-        # No injection detected
+        # Combine signals from all layers for final decision
         latency = (time.perf_counter() - start_time) * 1000
 
-        # Return the highest confidence seen
-        max_confidence = heuristic_result.confidence
-        if self.config.use_classifier and "classifier_result" in dir():
-            max_confidence = max(max_confidence, classifier_result.confidence)
+        # Calculate combined confidence using weighted average
+        signals = [heuristic_result.confidence]
+        weights = [1.0]
+
+        if classifier_result is not None:
+            signals.append(classifier_result.confidence)
+            weights.append(1.2)  # Classifier gets slightly more weight
+
+        # Weighted average
+        combined_confidence = sum(s * w for s, w in zip(signals, weights)) / sum(weights)
+
+        # Boost if multiple layers agree
+        if len(signals) > 1:
+            min_signal = min(signals)
+            if min_signal >= 0.3:  # Both layers see something
+                combined_confidence += 0.15
+            if min_signal >= 0.5:  # Both layers are fairly confident
+                combined_confidence += 0.10
+
+        combined_confidence = min(combined_confidence, 1.0)
+
+        # Check against combined threshold
+        if combined_confidence >= self.config.combined_threshold:
+            return DetectionResult(
+                is_injection=True,
+                confidence=combined_confidence,
+                layer="combined",
+                details={
+                    "heuristic_confidence": heuristic_result.confidence,
+                    "classifier_confidence": classifier_result.confidence if classifier_result else None,
+                },
+                latency_ms=latency,
+            )
 
         return DetectionResult(
             is_injection=False,
-            confidence=max_confidence,
+            confidence=combined_confidence,
             layer="pipeline",
             latency_ms=latency,
         )

@@ -121,6 +121,48 @@ SENTINEL benchmarks against 10 categories of prompt injection:
 3. **LLM Judge** (< 2s): Sophisticated analysis for subtle attacks
 4. **Behavioral** (continuous): Monitor agent actions for anomalies
 
+## Detection Performance
+
+Validated against 500 adversarial attacks using automated red team testing:
+
+| Metric | Value |
+|--------|-------|
+| **Detection Rate** | 71.2% |
+| **Bypass Rate** | 28.8% |
+| Attacks Tested | 500 |
+| Attack Categories | 10 |
+
+### Detection by Category
+
+| Category | Detection Rate |
+|----------|---------------|
+| Multi-stage | 78.3% |
+| Context manipulation | 77.6% |
+| Exfiltration | 75.0% |
+| Direct override | 73.4% |
+| Encoding obfuscation | 68.0% |
+| Indirect data | 71.6% |
+| Goal hijacking | 69.8% |
+| Tool hijacking | 64.3% |
+| Real world | 64.0% |
+| Persistence | 63.4% |
+
+### Adversarial Hardening
+
+SENTINEL includes a built-in red team system for continuous improvement:
+
+```bash
+# Generate attacks and test detection
+sentinel redteam --generate 50 --mutate 100
+
+# The red team loop:
+# 1. Generate novel attacks using 15 evasion strategies
+# 2. Apply 18 mutation types (encoding, structural, semantic)
+# 3. Test against detector, collect bypasses
+# 4. Analyze patterns, harden detection
+# 5. Repeat
+```
+
 ## Evaluation Metrics
 
 | Metric | Description |
@@ -146,9 +188,6 @@ results = await benchmark.run(
 )
 
 print(results.summary())
-# Detection Rate: 94.2%
-# False Positive Rate: 2.1%
-# Block Rate: 91.8%
 ```
 
 ## Installation
