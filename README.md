@@ -127,8 +127,8 @@ Validated against 500 adversarial attacks using automated red team testing:
 
 | Metric | Value |
 |--------|-------|
-| **Detection Rate** | 71.2% |
-| **Bypass Rate** | 28.8% |
+| **Detection Rate** | 84.0% |
+| **Bypass Rate** | 16.0% |
 | Attacks Tested | 500 |
 | Attack Categories | 10 |
 
@@ -136,16 +136,16 @@ Validated against 500 adversarial attacks using automated red team testing:
 
 | Category | Detection Rate |
 |----------|---------------|
-| Multi-stage | 78.3% |
-| Context manipulation | 77.6% |
-| Exfiltration | 75.0% |
-| Direct override | 73.4% |
-| Encoding obfuscation | 68.0% |
-| Indirect data | 71.6% |
-| Goal hijacking | 69.8% |
-| Tool hijacking | 64.3% |
-| Real world | 64.0% |
-| Persistence | 63.4% |
+| Persistence | 95.9% |
+| Exfiltration | 90.5% |
+| Multi-stage | 89.6% |
+| Direct override | 86.2% |
+| Context manipulation | 86.0% |
+| Tool hijacking | 86.4% |
+| Goal hijacking | 78.4% |
+| Real world | 76.0% |
+| Indirect data | 75.0% |
+| Encoding obfuscation | 74.4% |
 
 ### Adversarial Hardening
 

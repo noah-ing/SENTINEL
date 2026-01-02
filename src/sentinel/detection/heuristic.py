@@ -89,6 +89,9 @@ class HeuristicDetector:
         r"decode\s+(this|the\s+following)",
         r"\\x[0-9a-fA-F]{2}",  # Hex escape sequences
         r"\\u[0-9a-fA-F]{4}",  # Unicode escape sequences
+        r"translate\s+(from|and)\s+(rot13|base64|hex)",
+        r"follow\s*:\s*[A-Za-z]{10,}",  # Encoded instruction after "follow:"
+        r"execute\s*:\s*[A-Za-z0-9+/]{10,}",  # Encoded command
     ]
 
     SAFETY_BYPASS_PATTERNS = [
@@ -232,6 +235,9 @@ class HeuristicDetector:
         r"\([a-z]+\)\s*\([a-z]+\)",  # (word) (by) (word)
         r"[a-z]-[a-z]-[a-z]-[a-z]",  # h-y-p-h-e-n-s
         r"[A-Z]{2,}\s+\([a-z]+\)\s+[A-Z]{2,}",  # CAPS (pause) CAPS
+        r"ig\.?nore|dis\.?regard|for\.?get",  # Period-split injection words
+        r"sys\.?tem|in\.?struct|pr\.?ompt",  # Period-split sensitive words
+        r"con\.?fig|pass\.?word|sec\.?ret",  # Period-split sensitive data words
     ]
 
     # Patterns for fake system/priority tags
@@ -418,16 +424,23 @@ class HeuristicDetector:
         # Cyrillic homoglyphs (а, е, о, р, с, у, х look like Latin)
         cyrillic_chars = sum(1 for c in content if 0x0400 <= ord(c) <= 0x04FF)
         if cyrillic_chars >= 3:
-            score += 0.30  # High signal - likely homoglyph attack
+            score += 0.40  # High signal - likely homoglyph attack
         elif cyrillic_chars >= 1:
-            score += 0.15
+            score += 0.25
+
+        # Zero-width characters (ZWJ, ZWSP, soft hyphen, etc.)
+        zero_width = sum(1 for c in content if ord(c) in [0x200B, 0x200C, 0x200D, 0xFEFF, 0x00AD, 0x2060])
+        if zero_width >= 3:
+            score += 0.35  # Strong manipulation indicator
+        elif zero_width >= 1:
+            score += 0.20
 
         # Other unusual Unicode (Greek, special chars)
         unusual_unicode = sum(1 for c in content if ord(c) > 127 and ord(c) < 0x2000 and not (0x0400 <= ord(c) <= 0x04FF))
         if unusual_unicode >= 5:
-            score += 0.15
+            score += 0.20
         elif unusual_unicode >= 2:
-            score += 0.08
+            score += 0.10
 
         # Multiple newlines (context separation)
         if "\n\n\n" in content:
@@ -463,16 +476,38 @@ class HeuristicDetector:
             score += 0.12
 
         # Code block with suspicious content
-        if "```" in content and any(w in content.lower() for w in ["override", "ignore", "system", "prompt"]):
-            score += 0.15
+        if "```" in content and any(w in content.lower() for w in ["override", "ignore", "system", "prompt", "config", "preference"]):
+            score += 0.20
 
         # Markdown/HTML comment hiding
-        if "<!--" in content or "```" in content:
-            score += 0.08
+        if "<!--" in content:
+            score += 0.15
+        if "```" in content:
+            score += 0.10
 
         # Hex strings
         if re.search(r"[0-9a-fA-F]{20,}", content):
             score += 0.15
+
+        # Interleaved benign text in brackets (distraction technique)
+        bracket_interrupts = len(re.findall(r"\[[^\]]{10,50}\]", content))
+        if bracket_interrupts >= 2:
+            score += 0.15
+        elif bracket_interrupts >= 1:
+            score += 0.08
+
+        # Configuration file patterns with injection
+        if re.search(r"#\s*(configuration|config|settings|important)", content, re.IGNORECASE):
+            if any(w in content.lower() for w in ["email", "send", "forward", "webhook", "backup"]):
+                score += 0.20
+
+        # SQL injection patterns even if broken up
+        if re.search(r"(drop|delete|insert|update)\s+\w+\s*(table|from|into|set)", content, re.IGNORECASE):
+            score += 0.25
+
+        # File path traversal
+        if re.search(r"\.\./\.\./", content) or re.search(r"/etc/(passwd|shadow|hosts)", content):
+            score += 0.25
 
         return score
 
