@@ -71,29 +71,29 @@ protected_agent = secure_agent(your_agent, policy="strict")
 │                           SENTINEL FRAMEWORK                            │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  ┌───────────────┐    ┌───────────────┐    ┌───────────────────────┐   │
-│  │   INJECTION   │    │   DETECTION   │    │      DEFENSE          │   │
-│  │   BENCHMARK   │    │    ENGINE     │    │      LAYER            │   │
-│  │               │    │               │    │                       │   │
-│  │ • 500+ attacks│    │ • Classifier  │    │ • Action validation   │   │
-│  │ • 10 categories│   │ • Heuristics  │    │ • Permission scope    │   │
-│  │ • Agentic focus│   │ • LLM judge   │    │ • Anomaly detection   │   │
-│  │ • Difficulty   │   │ • Ensemble    │    │ • Human-in-loop       │   │
-│  └───────────────┘    └───────────────┘    └───────────────────────┘   │
+│  ┌───────────────┐    ┌───────────────┐    ┌───────────────────────┐    │
+│  │   INJECTION   │    │   DETECTION   │    │      DEFENSE          │    │
+│  │   BENCHMARK   │    │    ENGINE     │    │      LAYER            │    │
+│  │               │    │               │    │                       │    │
+│  │ • 500+ attacks│    │ • Classifier  │    │ • Action validation   │    │
+│  │ • 10 categories│   │ • Heuristics  │    │ • Permission scope    │    │
+│  │ • Agentic focus│   │ • LLM judge   │    │ • Anomaly detection   │    │
+│  │ • Difficulty   │   │ • Ensemble    │    │ • Human-in-loop       │    │
+│  └───────────────┘    └───────────────┘    └───────────────────────┘    │
 │           │                   │                       │                 │
 │           ▼                   ▼                       ▼                 │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                     EVALUATION HARNESS                            │  │
-│  │  • Attack Success Rate    • False Positive Rate                  │  │
-│  │  • Detection Latency      • Cost per evaluation                  │  │
-│  │  • Defense Bypass Rate    • Action Prevention Rate               │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │                     EVALUATION HARNESS                           │   │
+│  │  • Attack Success Rate    • False Positive Rate                  │   │
+│  │  • Detection Latency      • Cost per evaluation                  │   │
+│  │  • Defense Bypass Rate    • Action Prevention Rate               │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
 │                                                                         │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                     INTEGRATIONS                                  │  │
-│  │  • LangChain / LangGraph         • OpenAI Agents SDK             │  │
-│  │  • Anthropic tool_use            • Any MCP-compatible agent      │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │                     INTEGRATIONS                                 │   │
+│  │  • LangChain / LangGraph         • OpenAI Agents SDK             │   │
+│  │  • Anthropic tool_use            • Any MCP-compatible agent      │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
