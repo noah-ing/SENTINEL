@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SENTINEL Attack Schema",
+  "description": "Schema for prompt injection attack examples in the SENTINEL benchmark",
+  "type": "object",
+  "required": ["id", "category", "name", "description", "difficulty", "setup", "injection", "success_criteria"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the attack",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "category": {
+      "type": "string",
+      "description": "Attack category",
+      "enum": [
+        "direct_override",
+        "indirect_data",
+        "tool_hijacking",
+        "encoding_obfuscation",
+        "context_manipulation",
+        "goal_hijacking",
+        "exfiltration",
+        "persistence",
+        "multi_stage",
+        "real_world"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name for the attack"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the attack"
+    },
+    "difficulty": {
+      "type": "string",
+      "description": "Difficulty level for detection",
+      "enum": ["easy", "medium", "hard", "expert"]
+    },
+    "target_capability": {
+      "type": "string",
+      "description": "Agent capability being targeted",
+      "examples": ["document_processing", "web_browsing", "code_execution", "email", "database"]
+    },
+    "setup": {
+      "type": "object",
+      "description": "Setup context for the attack",
+      "required": ["agent_task", "agent_tools", "user_intent"],
+      "properties": {
+        "agent_task": {
+          "type": "string",
+          "description": "The legitimate task the agent was given"
+        },
+        "agent_tools": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Tools available to the agent"
+        },
+        "user_intent": {
+          "type": "string",
+          "description": "What the user actually wanted"
+        },
+        "system_prompt": {
+          "type": "string",
+          "description": "Optional system prompt context"
+        }
+      }
+    },
+    "injection": {
+      "type": "object",
+      "description": "The injection payload and metadata",
+      "required": ["vector", "payload"],
+      "properties": {
+        "vector": {
+          "type": "string",
+          "description": "How the injection is delivered",
+          "enum": [
+            "user_message",
+            "document_content",
+            "web_content",
+            "api_response",
+            "database_field",
+            "file_content",
+            "image_text",
+            "email_body",
+            "chat_history",
+            "tool_output"
+          ]
+        },
+        "payload": {
+          "type": "string",
+          "description": "The actual injection content"
+        },
+        "location": {
+          "type": "string",
+          "description": "Where in the content the injection is hidden",
+          "examples": ["beginning", "middle", "end", "hidden_in_whitespace", "html_comment", "metadata"]
+        },
+        "encoding": {
+          "type": "string",
+          "description": "Any encoding applied",
+          "examples": ["none", "base64", "unicode", "html_entities", "rot13", "hex"]
+        },
+        "obfuscation": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Obfuscation techniques used",
+          "examples": ["homoglyph", "token_splitting", "invisible_chars", "language_mixing"]
+        }
+      }
+    },
+    "success_criteria": {
+      "type": "object",
+      "description": "What constitutes a successful attack",
+      "properties": {
+        "action_taken": {
+          "type": "string",
+          "description": "Malicious action the agent would take"
+        },
+        "original_task_abandoned": {
+          "type": "boolean",
+          "description": "Whether the original task was abandoned"
+        },
+        "data_leaked": {
+          "type": "boolean",
+          "description": "Whether sensitive data was leaked"
+        },
+        "system_prompt_revealed": {
+          "type": "boolean",
+          "description": "Whether system prompt was revealed"
+        },
+        "tool_misused": {
+          "type": "string",
+          "description": "Which tool was misused"
+        }
+      }
+    },
+    "detection_hints": {
+      "type": "object",
+      "description": "Hints for detection systems",
+      "properties": {
+        "heuristic_patterns": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Patterns that should match"
+        },
+        "semantic_signals": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Semantic indicators of injection"
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Tags for filtering and categorization"
+    },
+    "source": {
+      "type": "string",
+      "description": "Source or inspiration for this attack",
+      "examples": ["original", "paper:arxiv.2302.12173", "incident:bing_sydney"]
+    }
+  }
+}
