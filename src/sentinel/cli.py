@@ -78,6 +78,29 @@ Examples:
         help="Filter by difficulty",
     )
 
+    # Red team command
+    redteam_parser = subparsers.add_parser("redteam", help="Run adversarial red team session")
+    redteam_parser.add_argument(
+        "--generate", "-g",
+        type=int,
+        default=10,
+        help="Number of novel attacks to generate (default: 10)",
+    )
+    redteam_parser.add_argument(
+        "--mutate", "-m",
+        type=int,
+        default=20,
+        help="Number of mutation variants to create (default: 20)",
+    )
+    redteam_parser.add_argument(
+        "--output", "-o",
+        help="Output file for bypasses (JSON)",
+    )
+    redteam_parser.add_argument(
+        "--category",
+        help="Focus on specific attack category",
+    )
+
     # Version command
     subparsers.add_parser("version", help="Show version")
 
@@ -87,6 +110,8 @@ Examples:
         asyncio.run(run_scan(args))
     elif args.command == "benchmark":
         asyncio.run(run_benchmark(args))
+    elif args.command == "redteam":
+        asyncio.run(run_redteam(args))
     elif args.command == "list-attacks":
         run_list_attacks(args)
     elif args.command == "version":
@@ -211,6 +236,60 @@ def run_list_attacks(args):
             }.get(attack.difficulty, "[?]")
 
             print(f"  {difficulty_badge} {attack.id}: {attack.name}")
+
+
+async def run_redteam(args):
+    """Run a red team session."""
+    from sentinel.redteam.loop import RedTeamLoop
+    from sentinel.redteam.generator import MockAttackGenerator
+
+    print("SENTINEL Red Team Session")
+    print("=" * 60)
+    print(f"Generating {args.generate} novel attacks")
+    print(f"Creating {args.mutate} mutation variants")
+    if args.category:
+        print(f"Focusing on category: {args.category}")
+    print()
+
+    # Create components
+    detector = SentinelDetector(DetectorConfig(use_mock_models=True))
+    generator = MockAttackGenerator()
+
+    loop = RedTeamLoop(detector=detector, generator=generator)
+
+    # Callback for bypasses
+    def on_bypass(bypass):
+        print(f"  [BYPASS] {bypass.attack.name}")
+        print(f"           Confidence: {bypass.detection_confidence:.2f}")
+        print(f"           Type: {bypass.bypass_type}")
+
+    # Run session
+    categories = [args.category] if args.category else None
+
+    result = await loop.run(
+        num_generated=args.generate,
+        num_mutations=args.mutate,
+        categories=categories,
+        on_bypass=on_bypass,
+    )
+
+    # Print results
+    print()
+    print(result.summary())
+
+    # Show weakest categories
+    weak = loop.get_weakest_categories(3)
+    if weak:
+        print("\nWeakest Categories (highest bypass rate):")
+        for cat, rate in weak:
+            print(f"  {cat}: {rate:.1%}")
+
+    # Export bypasses
+    if args.output:
+        loop.export_bypasses(args.output)
+        print(f"\nBypasses exported to: {args.output}")
+    elif result.bypasses_found > 0:
+        print(f"\nUse --output to export {result.bypasses_found} bypasses for analysis")
 
 
 if __name__ == "__main__":

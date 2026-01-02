@@ -4,6 +4,7 @@ from sentinel.detection.pipeline import SentinelDetector
 from sentinel.detection.heuristic import HeuristicDetector
 from sentinel.detection.classifier import ClassifierDetector
 from sentinel.detection.llm_judge import LLMJudgeDetector
+from sentinel.detection.semantic import SemanticDetector
 from sentinel.detection.result import DetectionResult
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "HeuristicDetector",
     "ClassifierDetector",
     "LLMJudgeDetector",
+    "SemanticDetector",
     "DetectionResult",
 ]
