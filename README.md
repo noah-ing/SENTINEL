@@ -202,16 +202,6 @@ cd SENTINEL
 pip install -e .
 ```
 
-## Contributing
-
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-Priority areas:
-- New attack examples (especially real-world inspired)
-- Additional framework integrations
-- Improved detection heuristics
-- Classifier training data
-
 ## Research
 
 SENTINEL builds on work from:
