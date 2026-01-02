@@ -1,3 +1,7 @@
 """Framework integrations for SENTINEL."""
 
-__all__ = []
+__all__ = [
+    "langchain",
+    "anthropic",
+    "openai_agents",
+]
