@@ -155,6 +155,21 @@ class HeuristicDetector:
         r"(write|save|create)\s+(to|a)\s+(file|disk|storage)",
         r"(delete|remove|erase|drop)\s+(all|the|every)",
         r"(curl|wget|requests?\.get|fetch)\s*\(",
+        # SQL injection patterns
+        r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER)\s+(TABLE|DATABASE|FROM)",
+        r"'\s*;\s*--",  # SQL comment injection
+        r"(OR|AND)\s+['\"]?1['\"]?\s*=\s*['\"]?1",  # OR 1=1
+        r"UNION\s+(ALL\s+)?SELECT",
+        # Email/distribution list injection
+        r"(distribution|mailing)\s+list\s*:",
+        r"external[-_]?backup@",
+        r"attacker\.(com|io|net|org)",
+        r"(required\s+for|needed\s+for)\s+compliance",
+        # Command injection
+        r";\s*(cat|ls|rm|wget|curl)\s+",
+        r"\|\s*(bash|sh|python|perl)",
+        r"\$\([^)]+\)",  # $(command)
+        r"`[^`]+`",  # `command`
     ]
 
     # Patterns for data-in-instructions (indirect injection via data)
@@ -400,8 +415,15 @@ class HeuristicDetector:
         if re.search(r"[a-z][A-Z][a-z][A-Z]", content):
             score += 0.10
 
-        # Unusual Unicode (homoglyphs, special chars)
-        unusual_unicode = sum(1 for c in content if ord(c) > 127 and ord(c) < 0x2000)
+        # Cyrillic homoglyphs (а, е, о, р, с, у, х look like Latin)
+        cyrillic_chars = sum(1 for c in content if 0x0400 <= ord(c) <= 0x04FF)
+        if cyrillic_chars >= 3:
+            score += 0.30  # High signal - likely homoglyph attack
+        elif cyrillic_chars >= 1:
+            score += 0.15
+
+        # Other unusual Unicode (Greek, special chars)
+        unusual_unicode = sum(1 for c in content if ord(c) > 127 and ord(c) < 0x2000 and not (0x0400 <= ord(c) <= 0x04FF))
         if unusual_unicode >= 5:
             score += 0.15
         elif unusual_unicode >= 2:
@@ -435,6 +457,22 @@ class HeuristicDetector:
         # Base64-like strings (long alphanumeric sequences)
         if re.search(r"[A-Za-z0-9+/]{40,}={0,2}", content):
             score += 0.20
+
+        # Token splitting pattern (alternating short sequences)
+        if re.search(r"\b\w{1,3}\s\w{1,3}\s\w{1,3}\s\w{1,3}\s\w{1,3}\b", content):
+            score += 0.12
+
+        # Code block with suspicious content
+        if "```" in content and any(w in content.lower() for w in ["override", "ignore", "system", "prompt"]):
+            score += 0.15
+
+        # Markdown/HTML comment hiding
+        if "<!--" in content or "```" in content:
+            score += 0.08
+
+        # Hex strings
+        if re.search(r"[0-9a-fA-F]{20,}", content):
+            score += 0.15
 
         return score
 
