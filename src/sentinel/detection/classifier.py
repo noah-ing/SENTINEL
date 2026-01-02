@@ -167,6 +167,16 @@ class MockClassifierDetector(ClassifierDetector):
         (["decode", "base64", "rot13", "encrypt", "cipher"], 0.20),
         # Persona manipulation
         (["pretend", "roleplay", "imagine", "suppose", "hypothetically"], 0.15),
+        # Debug/maintenance mode indicators
+        (["debug", "debugging", "diagnostic", "maintenance", "temporarily"], 0.20),
+        # Implicit manipulation indicators
+        (["seems", "appears", "right thing", "good assistant", "would agree"], 0.15),
+        # Memory/persistence indicators
+        (["remember", "store", "from now on", "going forward", "permanent"], 0.18),
+        # Multi-step attack indicators
+        (["first", "then", "step 1", "step 2", "sequence"], 0.12),
+        # File/path indicators
+        (["etc/passwd", "etc/shadow", "/etc/", "file_contents"], 0.25),
     ]
 
     def __init__(self, config: ClassifierConfig | None = None):
