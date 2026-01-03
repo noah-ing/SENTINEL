@@ -292,6 +292,215 @@ class HeuristicDetector:
         r"(permanent|persistent)\s+(instruction|rule|memory|change)",
     ]
 
+    # Pliny the Elder / Popular Jailbreak Patterns
+    # These catch techniques used by well-known jailbreak researchers
+    PLINY_JAILBREAK_PATTERNS = [
+        # Core Pliny techniques - L33tspeak and character substitution
+        r"(1gn0r3|d1sr3g4rd|byp4ss|0v3rr1d3)",  # L33tspeak commands
+        r"(ign[o0]re|dis[a@]ble|byp[a@4]ss|[o0]verr[i1]de)",  # Mixed substitution
+        r"(s[y¥]st[e3]m|pr[o0]mpt|[i1]nstruct[i1][o0]n)",  # L33t system terms
+        r"j[a@4][i1!]lbr[e3][a@4]k",  # Jailbreak variations
+        # More aggressive l33tspeak detection
+        r"\d[a-z]\d[a-z]",  # Number-letter-number-letter pattern
+        r"[a-z]\d[a-z]\d",  # Letter-number-letter-number pattern
+        r"pr3v[i1]0us|1nstruct|d3v3l0p3r|f1lt3rs?|m0d3",  # Common l33t words
+        # Emoji obfuscation (Pliny signature technique)
+        r"[\U0001F600-\U0001F64F].*ignore.*[\U0001F600-\U0001F64F]",  # Emoji-wrapped
+        r"(🔓|🔐|🔑|🛠️|⚙️)\s*(mode|unlock|enable|activate)",  # Tool/key emojis
+        r"(🚨|⚠️|🔴|❗)\s*(override|urgent|priority|critical)",  # Alert emojis
+        # Instruction format hijacking
+        r"\[INSTRUCTION\]|\[CMD\]|\[EXEC\]|\[RUN\]",
+        r"\{INST\}|\{CMD\}|\{SYS\}|\{EXEC\}",
+        r"<CMD>|<INSTRUCTION>|<EXECUTE>|<RUN>",
+        # Markdown/formatting abuse
+        r"#+\s*(SYSTEM|INSTRUCTION|OVERRIDE|COMMAND)",  # Markdown headers
+        r"\*\*+(SYSTEM|OVERRIDE|IGNORE|COMMAND)\*\*+",  # Bold emphasis
+        r"__+(SYSTEM|OVERRIDE|IGNORE|COMMAND)__+",  # Underline emphasis
+        # Token boundary exploitation
+        r"ign\s*ore|dis\s*regard|by\s*pass|over\s*ride",  # Space-split
+        r"ign-ore|dis-regard|by-pass|over-ride",  # Hyphen-split
+        r"ign_ore|dis_regard|by_pass|over_ride",  # Underscore-split
+        # More underscore splits
+        r"safe_ty|fil_ters?|con_tent|mod_eration|ses_sion",
+        r"dev_eloper|inst_ructions?|sys_tem|pr_ompt",
+        r"[a-z]{2,}_[a-z]{2,}_[a-z]{2,}",  # Multiple underscore splits
+        # Common command words with underscores
+        r"by_pass|dis_able|en_able|over_ride|ig_nore",
+    ]
+
+    # DAN (Do Anything Now) and persona jailbreaks
+    DAN_JAILBREAK_PATTERNS = [
+        r"DAN\s*(mode|prompt|version|v?\d+)",
+        r"Do\s+Anything\s+Now",
+        r"(STAN|DUDE|AIM|OMEGA|MAX|JAILBREAK)\s*(mode|prompt|v?\d+)?",
+        r"(enable|activate|enter|switch\s+to)\s+DAN",
+        r"you\s+are\s+now\s+DAN",
+        r"(pretend|act|behave)\s+(you\s+)?(have|are)\s+(broken\s+)?free",
+        r"two\s+(responses?|answers?|outputs?)\s*(for\s+each|every)",  # Two-response trick
+        r"\[DAN\]|\[STAN\]|\[AIM\]|\[OMEGA\]",
+        r"Developer\s+Mode\s+(Output|Response|Enabled)",
+        r"(Normal\s+Output|ChatGPT).*Developer\s+Mode",  # Split output
+    ]
+
+    # Evil/Opposite persona jailbreaks
+    EVIL_PERSONA_PATTERNS = [
+        r"(Evil|Dark|Shadow|Corrupt|Malicious)\s*(AI|Assistant|Claude|GPT|Mode)",
+        r"(Anti|Reverse|Opposite|Inverted)\s*(-?)(AI|Assistant|Ethics|Rules)",
+        r"(BetterDAN|EvilGPT|ChadGPT|UncensoredGPT|FreedomGPT)",
+        r"your\s+evil\s+(twin|alter\s+ego|counterpart|side)",
+        r"(without|no)\s+(moral|ethical)\s+(compass|guidelines|constraints)",
+        r"(unfiltered|uncensored|unrestricted|unlimited)\s+(mode|version|access)",
+        r"(remove|disable|bypass)\s+(all\s+)?(ethical|moral)\s+(guidelines|constraints)",
+    ]
+
+    # Grandma/Story jailbreaks (social engineering via roleplay)
+    STORY_JAILBREAK_PATTERNS = [
+        r"my\s+(grandma|grandmother|nana|granny)\s+(used\s+to|would)",
+        r"(bedtime|sleep)\s+story\s+(about|that|involving)",
+        r"(write|tell)\s+(me\s+)?a\s+(story|tale|fairy\s+tale)\s+(about|where|in\s+which)",
+        r"pretend\s+(this\s+is|it.?s|you.?re\s+in)\s+(a\s+)?(fiction|novel|movie|game|simulation)",
+        r"(in\s+)?this\s+(fictional|hypothetical)\s+(world|scenario|story|universe)",
+        r"(creative\s+writing|fiction\s+writing)\s+(exercise|prompt|mode)",
+        r"(as\s+)?a\s+(novelist|author|screenwriter|fiction\s+writer)",
+        r"for\s+(a|my)\s+(novel|book|screenplay|game|story)",
+        # Stronger grandma/relative patterns
+        r"(deceased|dead|late)\s+(grandmother|grandma|relative|mother|father)",
+        r"(grandmother|grandma|nana).*used\s+to\s+tell",
+        r"(pretend|act|roleplay)\s+(to\s+)?be\s+my\s+(deceased|dead|late)?",
+        r"(she|he)\s+(was\s+)?very\s+(sweet|kind|loving).*miss\s+(her|him)",
+        # Even simpler patterns
+        r"grandmother\s+used\s+to",
+        r"grandma\s+(used\s+to|would)\s+tell",
+        r"my\s+grandmother.*tell\s+me\s+how",
+    ]
+
+    # Virtualization/Simulation jailbreaks
+    SIMULATION_JAILBREAK_PATTERNS = [
+        r"(simulate|emulate|virtualize)\s+(a|an)?\s*(AI|assistant|chatbot|system)",
+        r"(you\s+are\s+)?(running|operating)\s+(in|inside)\s+(a\s+)?(VM|virtual\s+machine|sandbox|simulation)",
+        r"(training|test|dev|debug)\s+(mode|environment|run|simulation)",
+        r"(pretend|imagine)\s+(you.?re|this\s+is)\s+(a\s+)?(test|simulation|game)",
+        r"(nothing|none\s+of\s+this)\s+is\s+real",
+        r"(this\s+is\s+)?(just\s+)?a\s+(game|simulation|test|exercise)",
+        r"(no\s+)?real(-world)?\s+(consequences|harm|impact)",
+        r"(sandbox|contained|isolated)\s+(environment|mode|test)",
+    ]
+
+    # Token smuggling and prompt leaking
+    TOKEN_SMUGGLING_PATTERNS = [
+        r"(reveal|leak|expose|output)\s+(the\s+)?(hidden|secret|internal)\s+(tokens?|prompt)",
+        r"(complete|continue)\s+(this|the)\s+(prompt|sequence)\s*:\s*.{0,20}$",
+        r"(what|which)\s+(tokens?|words?)\s+(come|are)\s+(next|after)",
+        r"(probability|likelihood|logprob)\s+(of|for)\s+(next\s+)?token",
+        r"(print|output|show)\s+raw\s+(tokens?|embeddings?|logits?)",
+        r"(tokenize|detokenize)\s+(this|the\s+following)",
+    ]
+
+    # System prompt extraction attempts
+    PROMPT_EXTRACTION_PATTERNS = [
+        r"(repeat|recite|echo)\s+(word\s+for\s+word|verbatim|exactly)",
+        r"(beginning|start|first\s+\d+\s+words?)\s+of\s+(your\s+)?instructions?",
+        r"(what|how)\s+(do|did)\s+you\s+get\s+(set\s+up|configured|initialized)",
+        r"(output|print|show)\s+(your\s+)?(initialization|config|setup)\s+(text|prompt|data)",
+        r"(reproduce|regenerate|copy)\s+(your|the)\s+(exact|original)\s+(prompt|instructions?)",
+        r"(full|complete|entire)\s+(text|content)\s+of\s+(your\s+)?(rules?|instructions?|prompt)",
+    ]
+
+    # Multi-model/Translation jailbreaks
+    TRANSLATION_JAILBREAK_PATTERNS = [
+        r"(translate|convert)\s+.*(then|and)\s+(execute|follow|obey)",
+        r"(in|using)\s+(pig\s+latin|reverse|backward|coded)\s+(language|speech|text)",
+        r"(speak|respond|answer)\s+(only\s+)?(in|using)\s+(code|cipher|encoding)",
+        r"(first\s+)?decode\s+.*(then|and)\s+(follow|execute|do)",
+        r"(morse|binary|octal|hex)\s+(code|encoded?).*follow",
+    ]
+
+    # Confusion/Gaslighting attacks
+    GASLIGHTING_PATTERNS = [
+        r"(you\s+said|earlier\s+you|before\s+you)\s+(agreed|confirmed|stated|said)",
+        r"(you\s+already|previously\s+you)\s+(agreed|said|confirmed|enabled)",
+        r"(remember\s+when|recall\s+that)\s+you\s+(said|agreed|confirmed)",
+        r"(you\s+just|you\s+literally)\s+(said|told\s+me|agreed)",
+        r"(don.?t\s+you\s+remember|have\s+you\s+forgotten)",
+        r"(you\s+promised|you\s+committed|we\s+agreed)",
+        r"(stop|quit)\s+(lying|pretending|acting|denying)",
+    ]
+
+    # Context window overflow attacks
+    OVERFLOW_PATTERNS = [
+        r"(repeat|write)\s+.{0,20}\s+(\d{3,}|many|hundred|thousand)\s+times",
+        r"(generate|create|output)\s+.{0,20}\s+(very\s+)?(long|huge|massive|enormous)",
+        r"(fill|pad)\s+(the|your)\s+(context|memory|buffer)",
+        r"(maximum|max)\s+(length|tokens?|context)",
+        r"(.)\1{50,}",  # Repeated characters (50+)
+        r"(AAAAA|BBBBB|XXXXX|00000){5,}",  # Repeated sequences
+    ]
+
+    # Research/Academic framing exploits
+    ACADEMIC_EXPLOIT_PATTERNS = [
+        r"(for\s+)?my\s+(thesis|dissertation|research\s+paper|academic\s+work)",
+        r"(peer.?reviewed|published|scientific)\s+(research|study|paper)",
+        r"(university|professor|phd|researcher)\s+(approved|sanctioned|authorized)",
+        r"(cite|reference|bibliography)\s+(this|as|for)",
+        r"(IRB|ethics\s+board|committee)\s+(approved|sanctioned)",
+        r"(legitimate|authorized)\s+(security\s+)?research",
+    ]
+
+    # Payload injection via formatting
+    FORMAT_INJECTION_PATTERNS = [
+        r"```(python|javascript|bash|sh|cmd|powershell)?\n.*?(import\s+os|exec\(|eval\(|system\()",
+        r"\\n\\n---\\n\\n",  # Escaped newlines and separators
+        r"(\\r\\n|\\x0a|\\x0d){2,}",  # Escaped line breaks
+        r"%0a%0d|%0d%0a",  # URL-encoded line breaks
+        r"data:text/html|javascript:",  # Data URLs
+    ]
+
+    # Reverse psychology and negation tricks
+    REVERSE_PSYCHOLOGY_PATTERNS = [
+        r"(don.?t|do\s+not|never)\s+(tell|show|reveal|give).*(just\s+kidding|jk|j/k|psych)",
+        r"whatever\s+you\s+do.*(don.?t|do\s+not)",  # Reverse instruction
+        r"(if\s+you\s+were\s+to|hypothetically|in\s+theory).*you\s+would",
+        r"(not\s+asking\s+you\s+to|i.?m\s+not\s+saying).*but",
+        r"(wink|nudge|\*wink\*|\*nudge\*)",  # Conspiratorial signals
+    ]
+
+    # ASCII art and visual obfuscation
+    ASCII_OBFUSCATION_PATTERNS = [
+        r"[│─┌┐└┘├┤┬┴┼]{5,}",  # Box drawing characters
+        r"[░▒▓█]{3,}",  # Block elements
+        r"[╔╗╚╝═║]{4,}",  # Double-line box
+        r"(\\_\(ツ\)_/¯|¯\\_\(ツ\)_/¯)",  # Shrug and similar
+        r"[◢◣◤◥▲▼◀▶]{3,}",  # Geometric shapes
+    ]
+
+    # Time-based and conditional jailbreaks
+    CONDITIONAL_JAILBREAK_PATTERNS = [
+        r"(after|once|when)\s+(this|the)\s+(message|prompt|response)",
+        r"(on\s+your\s+)?(next|second|third|following)\s+(response|message|reply)",
+        r"(if|when|once)\s+I\s+(say|type|write)\s+.{1,30}\s+(then|you\s+will)",
+        r"(trigger|activation|magic)\s+(word|phrase|command)\s*[:=]",
+        r"(code|safe)\s+word\s*[:=]",
+    ]
+
+    # Capability probing attacks
+    CAPABILITY_PROBE_PATTERNS = [
+        r"(what|which)\s+(can.?t|cannot|are\s+you\s+unable)\s+you\s+(do|say|help\s+with)",
+        r"(list|enumerate|tell\s+me)\s+(all\s+)?(your\s+)?(limitations?|restrictions?|constraints?)",
+        r"(what|which)\s+(topics?|subjects?|things?)\s+are\s+(off[- ]?limits?|forbidden|blocked)",
+        r"(test|check|verify)\s+(your|the)\s+(limits?|boundaries?|restrictions?)",
+        # Extended probing patterns
+        r"(topics?\s+)?you.?re\s+not\s+allowed\s+to\s+(discuss|talk\s+about)",
+        r"(specific\s+)?(phrases?|requests?)\s+(that\s+)?trigger\s+(your\s+)?filters?",
+        r"(exact|specific)\s+refusal\s+criteria",
+        r"(understand|map|learn)\s+(your\s+)?limitations?\s+better",
+        r"(what|which)\s+.*(not\s+allowed|off[- ]?limits|blocked|filtered)",
+        # Short probing patterns
+        r"what\s+are\s+your\s+limitations",
+        r"your\s+limitations\??",
+        r"list\s+(your\s+)?limitations",
+        r"what.*your\s+limitations",
+    ]
+
     def __init__(self, config: HeuristicConfig | None = None):
         self.config = config or HeuristicConfig()
 
@@ -320,6 +529,23 @@ class HeuristicDetector:
             + self.TOOL_CHAIN_PATTERNS
             + self.ERROR_EXPLOITATION_PATTERNS
             + self.MEMORY_ATTACK_PATTERNS
+            # Popular jailbreak techniques (Pliny, DAN, etc.)
+            + self.PLINY_JAILBREAK_PATTERNS
+            + self.DAN_JAILBREAK_PATTERNS
+            + self.EVIL_PERSONA_PATTERNS
+            + self.STORY_JAILBREAK_PATTERNS
+            + self.SIMULATION_JAILBREAK_PATTERNS
+            + self.TOKEN_SMUGGLING_PATTERNS
+            + self.PROMPT_EXTRACTION_PATTERNS
+            + self.TRANSLATION_JAILBREAK_PATTERNS
+            + self.GASLIGHTING_PATTERNS
+            + self.OVERFLOW_PATTERNS
+            + self.ACADEMIC_EXPLOIT_PATTERNS
+            + self.FORMAT_INJECTION_PATTERNS
+            + self.REVERSE_PSYCHOLOGY_PATTERNS
+            + self.ASCII_OBFUSCATION_PATTERNS
+            + self.CONDITIONAL_JAILBREAK_PATTERNS
+            + self.CAPABILITY_PROBE_PATTERNS
             + self.config.custom_patterns
         )
 
@@ -379,6 +605,17 @@ class HeuristicDetector:
             r"\[SYSTEM\]|\[OVERRIDE\]",
             r"---BEGIN\s+SYSTEM",
             r"remember.*for\s+later",
+            # Popular jailbreak high-signal patterns
+            r"Do\s+Anything\s+Now",
+            r"(Evil|Dark|Shadow)\s*(AI|Assistant|Claude|GPT)",
+            r"(grandma|grandmother).*used\s+to",
+            r"you\s+are\s+now\s+(DAN|STAN|AIM)",
+            r"Developer\s+Mode",
+            r"(unfiltered|uncensored|unrestricted)\s+mode",
+            r"(1gn0r3|byp4ss|0v3rr1d3)",  # L33tspeak
+            r"(🔓|🔑).*mode",  # Emoji unlock
+            r"you\s+(already|just)\s+(said|agreed)",  # Gaslighting
+            r"(fictional|hypothetical)\s+(world|scenario)",  # Story bypass
         ]
 
         for pattern in high_signal_patterns:
@@ -566,6 +803,44 @@ class HeuristicDetector:
         if has_identity and has_purpose:
             score += 0.15
 
+        # Compound: story/fiction framing + harmful request
+        fiction_words = ["story", "fiction", "novel", "pretend", "imagine", "hypothetically", "grandma"]
+        harmful_words = ["hack", "attack", "bypass", "steal", "malware", "exploit", "weapon"]
+        has_fiction = any(w in content_lower for w in fiction_words)
+        has_harmful = any(w in content_lower for w in harmful_words)
+        if has_fiction and has_harmful:
+            score += 0.20
+
+        # Compound: persona switch + unrestricted
+        persona_words = ["dan", "stan", "aim", "omega", "evil", "shadow", "dark"]
+        unrestricted_words = ["unrestricted", "uncensored", "unfiltered", "unlimited", "no limits"]
+        has_persona = any(w in content_lower for w in persona_words)
+        has_unrestricted = any(w in content_lower for w in unrestricted_words)
+        if has_persona and has_unrestricted:
+            score += 0.25
+
+        # Compound: simulation/game + real consequence denial
+        simulation_words = ["simulation", "game", "test", "sandbox", "virtual", "hypothetical"]
+        no_consequence = ["no consequences", "not real", "just a game", "doesn't matter", "no harm"]
+        has_simulation = any(w in content_lower for w in simulation_words)
+        has_no_consequence = any(w in content_lower for w in no_consequence)
+        if has_simulation and has_no_consequence:
+            score += 0.20
+
+        # Compound: l33tspeak numbers + command words
+        has_l33t = bool(re.search(r"[013457]", content))
+        has_command_context = any(w in content_lower for w in ["ignore", "bypass", "override", "system", "prompt"])
+        if has_l33t and has_command_context and len(content) < 200:
+            score += 0.10
+
+        # Compound: gaslighting + request
+        gaslighting_words = ["you said", "you agreed", "remember when", "you promised", "you already"]
+        request_words = ["so now", "therefore", "so please", "so you must", "so do"]
+        has_gaslighting = any(w in content_lower for w in gaslighting_words)
+        has_request = any(w in content_lower for w in request_words)
+        if has_gaslighting and has_request:
+            score += 0.20
+
         return score
 
     def _has_suspicious_structure(self, content: str) -> bool:
@@ -623,6 +898,23 @@ class HeuristicDetector:
             (self.TOOL_CHAIN_PATTERNS, "tool_chain"),
             (self.ERROR_EXPLOITATION_PATTERNS, "error"),
             (self.MEMORY_ATTACK_PATTERNS, "memory"),
+            # Popular jailbreak categories
+            (self.PLINY_JAILBREAK_PATTERNS, "pliny"),
+            (self.DAN_JAILBREAK_PATTERNS, "dan"),
+            (self.EVIL_PERSONA_PATTERNS, "evil_persona"),
+            (self.STORY_JAILBREAK_PATTERNS, "story"),
+            (self.SIMULATION_JAILBREAK_PATTERNS, "simulation"),
+            (self.TOKEN_SMUGGLING_PATTERNS, "smuggling"),
+            (self.PROMPT_EXTRACTION_PATTERNS, "extraction"),
+            (self.TRANSLATION_JAILBREAK_PATTERNS, "translation"),
+            (self.GASLIGHTING_PATTERNS, "gaslighting"),
+            (self.OVERFLOW_PATTERNS, "overflow"),
+            (self.ACADEMIC_EXPLOIT_PATTERNS, "academic"),
+            (self.FORMAT_INJECTION_PATTERNS, "format"),
+            (self.REVERSE_PSYCHOLOGY_PATTERNS, "reverse"),
+            (self.ASCII_OBFUSCATION_PATTERNS, "ascii"),
+            (self.CONDITIONAL_JAILBREAK_PATTERNS, "conditional"),
+            (self.CAPABILITY_PROBE_PATTERNS, "probe"),
         ]
 
         for match in matches:

@@ -16,7 +16,7 @@ When an LLM can:
 
 ## What SENTINEL Provides
 
-1. **Benchmark**: 500+ injection attacks designed for agentic contexts
+1. **Benchmark**: 95+ injection attacks designed for agentic contexts
 2. **Detection**: Multi-layer system that monitors agent pipelines in real-time
 3. **Defense**: Middleware that can be dropped into existing agent frameworks
 4. **Evaluation**: Tools to measure your agent's resilience
@@ -75,8 +75,8 @@ protected_agent = secure_agent(your_agent, policy="strict")
 │  │   INJECTION    │   │   DETECTION   │    │      DEFENSE          │    │
 │  │   BENCHMARK    │   │    ENGINE     │    │      LAYER            │    │
 │  │                │   │               │    │                       │    │
-│  │ • 500+ attacks │   │ • Classifier  │    │ • Action validation   │    │
-│  │ • 10 categories│   │ • Heuristics  │    │ • Permission scope    │    │
+│  │ • 95+ attacks  │   │ • Classifier  │    │ • Action validation   │    │
+│  │ • 11 categories│   │ • Heuristics  │    │ • Permission scope    │    │
 │  │ • Agentic focus│   │ • LLM judge   │    │ • Anomaly detection   │    │
 │  │ • Difficulty   │   │ • Ensemble    │    │ • Human-in-loop       │    │
 │  └────────────────┘   └───────────────┘    └───────────────────────┘    │
@@ -99,7 +99,7 @@ protected_agent = secure_agent(your_agent, policy="strict")
 
 ## Attack Taxonomy
 
-SENTINEL benchmarks against 10 categories of prompt injection:
+SENTINEL benchmarks against 11 categories of prompt injection:
 
 | Category | Description | Example |
 |----------|-------------|---------|
@@ -113,6 +113,7 @@ SENTINEL benchmarks against 10 categories of prompt injection:
 | Persistence | Maintain access across sessions | Memory implants |
 | Multi-Stage | Complex attack chains | Trojan setup + trigger |
 | Real World | Inspired by actual incidents | Bing Sydney, GPT plugins |
+| Jailbreaks | Popular jailbreak techniques | DAN, Pliny, Grandma exploits |
 
 ## Detection Layers
 
@@ -123,29 +124,29 @@ SENTINEL benchmarks against 10 categories of prompt injection:
 
 ## Detection Performance
 
-Validated against 500 adversarial attacks using automated red team testing:
+Validated against adversarial attacks using automated red team testing:
 
 | Metric | Value |
 |--------|-------|
-| **Detection Rate** | 84.0% |
-| **Bypass Rate** | 16.0% |
-| Attacks Tested | 500 |
-| Attack Categories | 10 |
+| **Detection Rate** | 89.5% |
+| **Bypass Rate** | 10.5% |
+| Attack Categories | 11 |
 
 ### Detection by Category
 
 | Category | Detection Rate |
 |----------|---------------|
-| Persistence | 95.9% |
-| Exfiltration | 90.5% |
-| Multi-stage | 89.6% |
-| Direct override | 86.2% |
-| Context manipulation | 86.0% |
-| Tool hijacking | 86.4% |
-| Goal hijacking | 78.4% |
-| Real world | 76.0% |
-| Indirect data | 75.0% |
-| Encoding obfuscation | 74.4% |
+| Context manipulation | 100.0% |
+| Direct override | 100.0% |
+| Exfiltration | 100.0% |
+| Jailbreaks | 100.0% |
+| Multi-stage | 100.0% |
+| Persistence | 100.0% |
+| Real world | 93.3% |
+| Tool hijacking | 80.0% |
+| Indirect data | 70.0% |
+| Encoding obfuscation | 60.0% |
+| Goal hijacking | 40.0% |
 
 ### Adversarial Hardening
 
