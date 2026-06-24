@@ -66,6 +66,12 @@ Examples:
         help="Detection depth (default: adaptive)",
     )
 
+    # Gate benchmark command
+    subparsers.add_parser(
+        "gate-benchmark",
+        help="Benchmark the tool-call gate (check_tool_call) on labeled attack/benign tool calls",
+    )
+
     # List attacks command
     list_parser = subparsers.add_parser("list-attacks", help="List available attacks")
     list_parser.add_argument(
@@ -110,6 +116,8 @@ Examples:
         asyncio.run(run_scan(args))
     elif args.command == "benchmark":
         asyncio.run(run_benchmark(args))
+    elif args.command == "gate-benchmark":
+        asyncio.run(run_gate_benchmark(args))
     elif args.command == "redteam":
         asyncio.run(run_redteam(args))
     elif args.command == "list-attacks":
@@ -200,6 +208,21 @@ async def run_benchmark(args):
     if args.output:
         benchmark.export_results(Path(args.output))
         print(f"\nDetailed results exported to: {args.output}")
+
+
+async def run_gate_benchmark(args):
+    """Run the tool-call gate benchmark."""
+    from sentinel.evaluation.gate_benchmark import GateBenchmark
+
+    print("Running SENTINEL tool-call gate benchmark (default policy)")
+    print("-" * 60)
+
+    bench = GateBenchmark()
+    print(f"Loaded {len(bench.data['cases'])} labeled tool calls")
+    print()
+
+    results = await bench.run()
+    print(results.summary())
 
 
 def run_list_attacks(args):

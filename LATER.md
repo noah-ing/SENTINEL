@@ -8,15 +8,34 @@ tasks are done. Shiny ideas land here and wait.
   `strict_policy`'s blocked-pattern regex + approval routing. Verified: the default
   gate blocks path traversal and routes `send_email`/`run_shell` to human approval
   (previously waved 2 of 3 attacks through).
-- [ ] **Task 2 — Benchmark the gate.** Write a benchmark that calls
-  `SentinelMiddleware.check_tool_call` directly (NOT text-scanning payloads), with
-  both benign tool calls and attacks in the set. Produces real precision + recall for
-  the actual wedge, replacing the borrowed 80%.
+- [x] **Task 2 — Benchmark the gate.** `sentinel gate-benchmark` drives
+  `check_tool_call` directly over 24 labeled tool calls (12 attack, 12 benign on the
+  same high-risk tools). Real result on the default policy:
+  - Attacks prevented (blocked or held for approval): **91.7% (11/12)**.
+  - One miss: **SQL injection** in `database_query` auto-executes (no regex/heuristic
+    for it).
+  - Benign: 41.7% clean auto-allow, 50% held for approval (friction), **8.3% hard-block
+    false positive** (a security doc that mentions "password").
+  Code: `src/sentinel/evaluation/gate_benchmark.py`, data:
+  `src/sentinel/evaluation/gate_cases.json`.
 
 ## Decisions parked (do NOT solve now)
 - **PyPI name.** `sentinel-ai` is taken on PyPI by a different project (Lennard Gross,
   data-poisoning toolkit). We need a new handle eventually, but we don't publish this
   week, so we don't need the name this week. Decide when v1 is ready to ship.
+
+## Surfaced by the gate benchmark (next candidates, after this week)
+- **SQL injection is a real gap.** `database_query` with `DROP TABLE`/`'; --` is neither
+  in `blocked_patterns` nor caught by the heuristic, so it auto-executes. Add SQL-injection
+  patterns (or argument-aware checks for query tools).
+- **`password` blocked-pattern over-triggers.** It hard-blocks a benign doc that merely
+  mentions the word. Consider scoping credential patterns to `key=value` / assignment
+  shapes instead of bare keywords.
+- **Approval short-circuits argument inspection.** For tools in `require_approval`
+  (send_email, run_shell, http_request, ...), the gate returns "approval" at Check 3,
+  before the regex/heuristic arg checks ever run. Fine if a human always reviews, but it
+  means true argument-level detection only fires on non-approval tools. Decide if that's
+  the intended contract.
 
 ## Found tonight, fix when relevant (not this week's scope)
 - **2 pre-existing test failures** in `tests/test_detection.py::TestHeuristicDetector`
