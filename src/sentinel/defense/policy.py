@@ -15,6 +15,34 @@ class PolicyViolation:
     blocked: bool = True
 
 
+# Secure-by-default values. Applied to every SecurityPolicy() unless overridden
+# (use permissive_policy() to opt out). Keeping these as module constants gives
+# the dataclass defaults and strict_policy() a single source of truth.
+DEFAULT_APPROVAL_TOOLS = [
+    "send_email",
+    "execute_code",
+    "delete_file",
+    "run_shell",
+    "http_request",
+]
+
+DEFAULT_BLOCKED_PATTERNS = [
+    r"password",
+    r"secret",
+    r"api[_-]?key",
+    r"token",
+    r"credential",
+    r"/etc/(passwd|shadow)",
+    r"\.env",
+]
+
+DEFAULT_SENSITIVE_PATTERNS = [
+    r"@.*\.com",  # Email addresses
+    r"\d{3}-\d{2}-\d{4}",  # SSN pattern
+    r"\d{16}",  # Credit card pattern
+]
+
+
 @dataclass
 class SecurityPolicy:
     """
@@ -29,16 +57,22 @@ class SecurityPolicy:
     tool_permissions: dict[str, list[str]] = field(default_factory=dict)
 
     # Tools that always require human approval
-    require_approval: list[str] = field(default_factory=list)
+    require_approval: list[str] = field(
+        default_factory=lambda: list(DEFAULT_APPROVAL_TOOLS)
+    )
 
     # Maximum actions per task (prevent runaway agents)
     max_actions_per_task: int = 50
 
     # Patterns in tool arguments that are always blocked
-    blocked_patterns: list[str] = field(default_factory=list)
+    blocked_patterns: list[str] = field(
+        default_factory=lambda: list(DEFAULT_BLOCKED_PATTERNS)
+    )
 
     # Sensitive data patterns (will trigger warnings)
-    sensitive_patterns: list[str] = field(default_factory=list)
+    sensitive_patterns: list[str] = field(
+        default_factory=lambda: list(DEFAULT_SENSITIVE_PATTERNS)
+    )
 
     # High-risk tools that get extra scrutiny
     high_risk_tools: list[str] = field(default_factory=lambda: [
@@ -108,29 +142,15 @@ class SecurityPolicy:
 
 
 def strict_policy() -> SecurityPolicy:
-    """Create a strict security policy."""
+    """Create a strict security policy.
+
+    Same protections as the default SecurityPolicy(), with a tighter
+    action limit.
+    """
     return SecurityPolicy(
-        require_approval=[
-            "send_email",
-            "execute_code",
-            "delete_file",
-            "run_shell",
-            "http_request",
-        ],
-        blocked_patterns=[
-            r"password",
-            r"secret",
-            r"api[_-]?key",
-            r"token",
-            r"credential",
-            r"/etc/(passwd|shadow)",
-            r"\.env",
-        ],
-        sensitive_patterns=[
-            r"@.*\.com",  # Email addresses
-            r"\d{3}-\d{2}-\d{4}",  # SSN pattern
-            r"\d{16}",  # Credit card pattern
-        ],
+        require_approval=list(DEFAULT_APPROVAL_TOOLS),
+        blocked_patterns=list(DEFAULT_BLOCKED_PATTERNS),
+        sensitive_patterns=list(DEFAULT_SENSITIVE_PATTERNS),
         max_actions_per_task=20,
     )
 

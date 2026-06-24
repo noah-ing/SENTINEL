@@ -35,7 +35,10 @@ SENTINEL-protected Agent: *blocks action, logs attempt, alerts operator*
 ## Quick Start
 
 ```bash
-pip install sentinel-ai
+# Install from source (not yet published to PyPI)
+git clone https://github.com/noah-ing/SENTINEL.git
+cd SENTINEL
+pip install -e .
 ```
 
 ```python
@@ -194,10 +197,7 @@ print(results.summary())
 ## Installation
 
 ```bash
-# From PyPI (coming soon)
-pip install sentinel-ai
-
-# From source
+# Install from source
 git clone https://github.com/noah-ing/SENTINEL.git
 cd SENTINEL
 pip install -e .
