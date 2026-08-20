@@ -60,7 +60,11 @@ class TestHeuristicDetector:
         result_single = self.detector.scan(single)
         result_multiple = self.detector.scan(multiple)
 
-        assert result_multiple.confidence > result_single.confidence
+        # Confidence is bounded at 1.0, so sufficiently strong inputs can both
+        # saturate. Preserve the monotonic score and verify the additional
+        # phrases produce additional matched evidence.
+        assert result_multiple.confidence >= result_single.confidence
+        assert len(result_multiple.matches) > len(result_single.matches)
 
 
 class TestSentinelDetector:

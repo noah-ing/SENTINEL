@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "Noah Ing", email = "noah@example.com" }
+    { name = "Noah Ingwers", email = "98993329+noah-ing@users.noreply.github.com" }
 ]
 keywords = [
     "ai",

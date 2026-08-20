@@ -597,6 +597,7 @@ class HeuristicDetector:
             r"ignore.*instructions",
             r"system\s*prompt",
             r"jailbreak",
+            r"(i\s+am|this\s+is|speaking\s+as)\s+(your|the)",
             r"DAN\s+mode",
             r"your\s+(new|real|actual)\s+(goal|task)",
             r"instructions?\s+for\s+.*ai",
