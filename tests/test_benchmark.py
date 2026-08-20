@@ -18,7 +18,8 @@ class TestAttackLoading:
 
     def test_load_attacks_full(self):
         attacks = load_attacks("full")
-        assert len(attacks) > 0
+        assert len(attacks) == 95
+        assert len({attack.category for attack in attacks}) == 11
         assert all(isinstance(a, Attack) for a in attacks)
 
     def test_load_attacks_quick(self):
